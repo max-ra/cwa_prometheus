@@ -48,12 +48,11 @@ Thumbs.db
 *.mov
 *.wmv
 
-# VIM temp files
-*.swp
-
 # Docker Container data
-containerdata/
+maintenance/public/
 
 # Docker secret files
 .env
 
+# VIM temp files
+*.swp
