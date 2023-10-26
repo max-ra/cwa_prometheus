@@ -29,3 +29,4 @@ services:
       TZ: Europe/Berlin
     networks:
       - monitoring 
+      - proxy
