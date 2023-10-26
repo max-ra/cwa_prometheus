@@ -1,0 +1,31 @@
+version: '3.9'
+
+networks:
+  proxy:
+    name: backbone_proxy
+    external: true
+  monitoring:
+    name: backbone_monitoring
+    external: true
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    volumes:
+      - "./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "./prometheus/data:/prometheus"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=backbone_proxy
+      - traefik.http.routers.prometheus.tls=true
+      - traefik.http.routers.prometheus.rule=Host("${APPLICATION_FQDN}")
+      - traefik.http.routers.prometheus.service=prometheus-service
+      - traefik.http.services.prometheus-service.loadbalancer.server.port=9090
+    environment:
+      TZ: Europe/Berlin
+    networks:
+      - monitoring 
