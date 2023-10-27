@@ -17,12 +17,12 @@ scrape_configs:
     relabel_configs:
       # Only keep containers that have a `prometheus.scrape` label set to true.
       - source_labels: [__meta_docker_container_label_prometheus_scrape]
-        regex: true
+        regex: "true"
         action: keep
 
-      # Only keep those that are in network named metrics.
+      # Only keep those that are in network named backbone_monitoring.
       - source_labels: [__meta_docker_network_name]
-        regex: metrics
+        regex: backbone_monitoring
         action: keep
 
       # allow override of http scheme with `promehteus.scheme`
