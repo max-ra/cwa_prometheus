@@ -11,21 +11,38 @@ scrape_configs:
     static_configs:
       - targets: ['prometheus:9090']
 
-  - job_name: 'infrastructure'
+  - job_name: docker-containers
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+    relabel_configs:
+      # Only keep containers that have a `prometheus.scrape` label set to true.
+      - source_labels: [__meta_docker_container_label_prometheus_scrape]
+        regex: true
+        action: keep
 
-    # Override the global default and scrape targets from this job every 5 seconds.
-    scrape_interval: 5s
+      # Only keep those that are in network named metrics.
+      - source_labels: [__meta_docker_network_name]
+        regex: metrics
+        action: keep
 
-    static_configs:
-      - targets: ['node_exporter:9100', 'cadvisor:8080', 'reverse_proxy:8080/metrics']
+      # allow override of http scheme with `promehteus.scheme`
+      - action: replace
+        regex: (https?)
+        source_labels: [__meta_docker_container_label_prometheus_scheme]
+        target_label: __scheme__
 
-  - job_name: 'database'
-    scrape_interval: 5s
+      # allow override of default /metrics path with `prometheus.path`
+      - action: replace
+        regex: (.+)
+        source_labels: [__meta_docker_container_label_prometheus_path]
+        target_label: __metrics_path__
 
-    static_configs:
-      - targets: ['mariadb-mon:9104']
+      # allow override of default port with `prometheus.port`
+      - action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        source_labels: [__address__, __meta_docker_container_label_prometheus_port]
+        target_label: __address__
 
-  - job_name: 'nextcloud'
-    static_configs:
-      - targets: ['nextcloud-mon:9205']
-
+      # Add all labels
+      - {action: labelmap, regex: __meta_docker_container_label_(.+)}

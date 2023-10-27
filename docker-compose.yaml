@@ -13,8 +13,10 @@ services:
     image: prom/prometheus
     container_name: prometheus
     restart: always
+    user: root
     volumes:
-      - "./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - "./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
       - "./prometheus/data:/prometheus"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
