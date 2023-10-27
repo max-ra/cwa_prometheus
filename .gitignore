@@ -49,7 +49,7 @@ Thumbs.db
 *.wmv
 
 # Docker Container data
-maintenance/public/
+prometheus/data/
 
 # Docker secret files
 .env
