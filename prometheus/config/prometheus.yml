@@ -3,14 +3,19 @@ global:
   evaluation_interval: 15s
 
 rule_files:
-  # - "first.rules"
+  - "rules.yml"
   # - "second.rules"
 
-scrape_configs:
-  - job_name: 'monitoring' 
-    static_configs:
-      - targets: ['prometheus:9090']
+alerting:
+  alertmanagers:
+    - static_configs:
+      - targets:
+        - 'alertmanager:9093'
 
+scrape_config_files:
+  - "scraper-*.yml"
+
+scrape_configs:
   - job_name: docker-containers
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
@@ -43,6 +48,12 @@ scrape_configs:
         replacement: $1:$2
         source_labels: [__address__, __meta_docker_container_label_prometheus_port]
         target_label: __address__
+
+      # allow override of job with 'prometheus.job'
+      - action: replace
+        regex: (.+)
+        source_labels: [__meta_docker_container_label_prometheus_job]
+        target_label: job
 
       # Add all labels
       - {action: labelmap, regex: __meta_docker_container_label_(.+)}

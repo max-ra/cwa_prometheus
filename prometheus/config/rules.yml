@@ -1,0 +1,31 @@
+groups:
+ - name: Router load
+   rules:
+   - alert: High load on router 03
+     expr: (rate(node_network_receive_bytes_total{instance="gw03.rauch.lan:9100"}[5m]) > 50000) * on (instance) group_left (nodename) node_uname_info{nodename=~".+"}
+     for: 10s
+     labels:
+       severity: information
+     annotations:
+       summary: Test rule to simulate high Network lod on (instance {{ $labels.instance }})
+       descritions: "Network Load ist \n VALUE = {{ $value }} \n LABLES = {{ $labels }}"
+
+ - name: Hardware Monitoring
+   rules:
+   - alert: HostOutOfMemory
+     expr: ((( node_memory_wired_bytes + node_memory_active_bytes) / node_memory_size_bytes * 100 >= 80) or (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 >= 90)) * on (instance) group_left (nodename) node_uname_info{nodename=~".+"}
+     for: 2m
+     labels:
+       severity: warning
+     annotations:
+       summary: Host out of memory (instance {{ $labels.instance }})
+       description: "Node memory is filling up (< 10% left)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+   - alert: HostHighCpuLoad
+     expr: (sum by (instance) (avg by (mode, instance) (rate(node_cpu_seconds_total{mode!="idle"}[2m]))) > 0.8) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}
+     for: 10m
+     labels:
+       severity: warning
+     annotations:
+       summary: Host high CPU load (instance {{ $labels.instance }})
+       description: "CPU load is > 80%\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+ 
