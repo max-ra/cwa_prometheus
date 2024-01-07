@@ -16,7 +16,7 @@ services:
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - "./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+      - "./prometheus/config:/etc/prometheus"
       - "./prometheus/data:/prometheus"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -27,8 +27,47 @@ services:
       - traefik.http.routers.prometheus.rule=Host("${APPLICATION_FQDN}")
       - traefik.http.routers.prometheus.service=prometheus-service
       - traefik.http.services.prometheus-service.loadbalancer.server.port=9090
+      - prometheus.scrape=true
+      - prometheus.port=9090
     environment:
       TZ: Europe/Berlin
     networks:
       - monitoring 
       - proxy
+  alertmanager:
+    image: prom/alertmanager
+    container_name: alertmanager
+    restart: always
+    volumes:
+      - "./alertmanager/config:/etc/alertmanager"
+      - "./alertmanager/data:/data"
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=backbone_proxy
+      - traefik.http.routers.alertmanager.tls=true
+      #- traefik.http.routers.alertmanager.rule=Host("${APPLICATION_FQDN}")
+      - traefik.http.routers.alertmanager.rule=Host("alert.dev.lan")
+      - traefik.http.routers.alertmanager.service=alertmanager-service
+      - traefik.http.services.alertmanager-service.loadbalancer.server.port=9093
+    environment:
+      TZ: Europe/Berlin
+    networks:
+      - monitoring
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+    labels:
+      - prometheus.scrape=true
+      - prometheus.port=9100
+      - prometheus.job=infrastructure
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+    networks:
+      - monitoring
