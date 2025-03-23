@@ -26,7 +26,7 @@ services:
       - traefik.http.routers.prometheus.tls=true
       - traefik.http.routers.prometheus.tls.certresolver=${CERTRESOLVER:-}
       - traefik.http.routers.prometheus.entryPoints=https
-      - traefik.http.routers.prometheus.rule=Host("${APPLICATION_FQDN}")
+      - traefik.http.routers.prometheus.rule=Host("prom.${HOST_FQDN}")
       - traefik.http.routers.prometheus.service=prometheus-service
       - traefik.http.services.prometheus-service.loadbalancer.server.port=9090
       - prometheus.scrape=true
@@ -54,13 +54,14 @@ services:
       - traefik.http.routers.alertmanager.tls=true
       - traefik.http.routers.alertmanager.tls.certresolver=${CERTRESOLVER:-}
       - traefik.http.routers.alertmanager.entryPoints=https
-      - traefik.http.routers.alertmanager.rule=Host("${APPLICATION_FQDN}")
+      - traefik.http.routers.alertmanager.rule=Host("alert.${HOST_FQDN}")
       - traefik.http.routers.alertmanager.service=alertmanager-service
       - traefik.http.services.alertmanager-service.loadbalancer.server.port=9093
     environment:
       TZ: Europe/Berlin
     networks:
       - monitoring
+      - proxy
 
   node_exporter:
     image: quay.io/prometheus/node-exporter:latest
