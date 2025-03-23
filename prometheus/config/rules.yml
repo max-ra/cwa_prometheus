@@ -1,15 +1,4 @@
 groups:
- - name: Router load
-   rules:
-   - alert: High load on router 03
-     expr: (rate(node_network_receive_bytes_total{instance="gw03.rauch.lan:9100"}[5m]) > 50000) * on (instance) group_left (nodename) node_uname_info{nodename=~".+"}
-     for: 10s
-     labels:
-       severity: information
-     annotations:
-       summary: Test rule to simulate high Network lod on (instance {{ $labels.instance }})
-       descritions: "Network Load ist \n VALUE = {{ $value }} \n LABLES = {{ $labels }}"
-
  - name: Hardware Monitoring
    rules:
    - alert: HostOutOfMemory
