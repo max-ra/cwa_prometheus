@@ -18,6 +18,7 @@ scrape_configs:
   - job_name: docker-containers
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
+        match_first_network: false
     relabel_configs:
       # Only keep containers that have a `prometheus.scrape` label set to true.
       - source_labels: [__meta_docker_container_label_prometheus_scrape]
