@@ -31,11 +31,14 @@ services:
       - traefik.http.services.prometheus-service.loadbalancer.server.port=9090
       - prometheus.scrape=true
       - prometheus.port=9090
+      - prometheus.host=prom.${HOST_FQDN}
     environment:
       TZ: Europe/Berlin
     networks:
-      - monitoring 
+      - monitoring
       - proxy
+    extra_hosts:
+      - host.docker.internal:host-gateway
 
   alertmanager:
     image: prom/alertmanager:v0.28.1
@@ -68,13 +71,15 @@ services:
     container_name: node_exporter
     command:
       - '--path.rootfs=/host'
+    network_mode: host
     labels:
       - prometheus.scrape=true
       - prometheus.port=9100
       - prometheus.job=infrastructure
+      - prometheus.address=host.docker.internal
+      - prometheus.host=$HOST_FQDN
     pid: host
     restart: unless-stopped
     volumes:
       - '/:/host:ro,rslave'
-    networks:
-      - monitoring
+

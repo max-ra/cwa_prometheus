@@ -27,8 +27,15 @@ scrape_configs:
 
       # Only keep those that are in network named backbone_monitoring.
       - source_labels: [__meta_docker_network_name]
-        regex: backbone_monitoring
+        regex: (backbone_monitoring|host)
         action: keep
+
+      # override scrap target expecialy for node exporter
+      #- action: replace
+      #  regex: (?:[^:]+)(?:(?::)(\d+))?(?::\d+)?;([^:]+)
+      #  replacement: $2:$1
+      #  source_labels: [__address__,__meta_docker_container_label_prometheus_address]
+      #  target_label: __address__
 
       # allow override of http scheme with `promehteus.scheme`
       - action: replace
@@ -54,6 +61,19 @@ scrape_configs:
         regex: (.+)
         source_labels: [__meta_docker_container_label_prometheus_job]
         target_label: job
+
+      # replace hoste name with traefik configuration
+      - action: replace
+        regex: (.+)
+        source_labels: [__meta_docker_container_label_prometheus_host]
+        target_label: instance
+
+      # override scrap target expecialy for node exporter
+      - action: replace
+        regex: (?:[^:]+)(?:(?::)(\d+))?(?::\d+)?;([^:]+)
+        replacement: $2:$1
+        source_labels: [__address__,__meta_docker_container_label_prometheus_address]
+        target_label: __address__
 
       # Add all labels
       - {action: labelmap, regex: __meta_docker_container_label_(.+)}
